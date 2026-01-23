@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+require("dotenv").config()
 const User = require("../models/User")
 const Property = require("../models/Property")
 const Location = require("../models/Location")
@@ -81,7 +82,7 @@ const seedDatabase = async () => {
       },
     ]
 
-    const createdUsers = await User.insertMany(users)
+    const createdUsers = await User.create(users)
     console.log("Users seeded")
 
     // Create sample properties
