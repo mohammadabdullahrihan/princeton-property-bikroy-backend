@@ -1,91 +1,110 @@
-const mongoose = require("mongoose")
-const bcrypt = require("bcrypt")
-const crypto = require("crypto")
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, "নাম প্রয়োজন"],
+    required: [true, 'Name is required'],
     trim: true,
-    minlength: 3,
+    minlength: [2, 'Name must be at least 2 characters'],
+    maxlength: [100, 'Name cannot exceed 100 characters']
   },
+
   email: {
     type: String,
-    required: [true, "ইমেইল প্রয়োজন"],
+    required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "বৈধ ইমেইল প্রয়োজন"],
+    trim: true,
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
   },
+
   password: {
     type: String,
-    required: [true, "পাসওয়ার্ড প্রয়োজন"],
-    minlength: 6,
-    select: false,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters'],
+    select: false // Don't return password by default
   },
-  phone: {
-    type: String,
-    required: [true, "ফোন নম্বর প্রয়োজন"],
-    trim: true,
-  },
+
   role: {
     type: String,
-    enum: ["user", "agent", "admin"],
-    default: "user",
+    enum: ['admin', 'viewer'],
+    default: 'viewer'
   },
-  profileImage: {
+
+  phone: {
     type: String,
-    default: null,
+    trim: true,
+    match: [/^(\+8801|01)[3-9]\d{8}$/, 'Please provide a valid Bangladesh phone number']
   },
+
+  avatar: {
+    type: String,
+    default: null
+  },
+
   verified: {
     type: Boolean,
-    default: false,
+    default: false
   },
-  verificationToken: {
-    type: String,
-    select: false,
+
+  verificationToken: String,
+  verificationTokenExpire: Date,
+
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+
+  isActive: {
+    type: Boolean,
+    default: true
   },
-  verificationTokenExpires: Date,
-  passwordResetToken: {
-    type: String,
-    select: false,
-  },
-  passwordResetExpires: Date,
-  createdAt: {
+
+  lastLogin: {
     type: Date,
-    default: Date.now,
-  },
-})
+    default: null
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Virtual for user's properties
+userSchema.virtual('properties', {
+  ref: 'Property',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: false
+});
 
 // Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next()
-
-  try {
-    const salt = await bcrypt.genSalt(10)
-    this.password = await bcrypt.hash(this.password, salt)
-    next()
-  } catch (err) {
-    next(err)
+userSchema.pre('save', async function(next) {
+  // Only hash if password is modified
+  if (!this.isModified('password')) {
+    return next();
   }
-})
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
-// Method to compare passwords
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password)
-}
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error('Password comparison failed');
+  }
+};
 
-userSchema.methods.getPasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex")
-  this.passwordResetToken = crypto.createHash("sha256").update(resetToken).digest("hex")
-  this.passwordResetExpires = Date.now() + 30 * 60 * 1000 // 30 minutes
-  return resetToken
-}
+// Index for faster queries
+userSchema.index({ role: 1 });
+userSchema.index({ verified: 1 });
+userSchema.index({ createdAt: -1 });
 
-userSchema.methods.getVerificationToken = function () {
-  const verifyToken = crypto.randomBytes(32).toString("hex")
-  this.verificationToken = crypto.createHash("sha256").update(verifyToken).digest("hex")
-  this.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
-  return verifyToken
-}
-
-module.exports = mongoose.model("User", userSchema)
+module.exports = mongoose.model('User', userSchema);

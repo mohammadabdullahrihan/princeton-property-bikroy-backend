@@ -1,10 +1,10 @@
 const express = require("express")
-const { authMiddleware } = require("../middleware/auth")
+const { authenticate } = require("../middleware/auth")
 const SavedListing = require("../models/SavedListing")
 
 const router = express.Router()
 
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
   try {
     const { propertyId } = req.body
     const saved = new SavedListing({
@@ -12,13 +12,20 @@ router.post("/", authMiddleware, async (req, res) => {
       propertyId,
     })
     await saved.save()
-    res.status(201).json({ message: "সংরক্ষিত", saved })
+    res.status(201).json({
+      success: true,
+      data: saved,
+      message: "সংরক্ষিত"
+    })
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    res.status(400).json({
+      success: false,
+      message: err.message
+    })
   }
 })
 
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 12 } = req.query
     const pageNum = Math.max(1, Number.parseInt(page))
@@ -33,26 +40,39 @@ router.get("/", authMiddleware, async (req, res) => {
 
     const total = await SavedListing.countDocuments({ userId: req.user.id })
 
-    res.json({
-      saved,
-      pagination: {
-        total,
-        page: pageNum,
-        limit: limitNum,
-        pages: Math.ceil(total / limitNum),
+    res.status(200).json({
+      success: true,
+      data: {
+        saved,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          pages: Math.ceil(total / limitNum),
+        },
       },
+      message: 'Saved listings retrieved'
     })
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    res.status(400).json({
+      success: false,
+      message: err.message
+    })
   }
 })
 
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authenticate, async (req, res) => {
   try {
     await SavedListing.findByIdAndDelete(req.params.id)
-    res.json({ message: "মুছে ফেলা হয়েছে" })
+    res.status(200).json({
+      success: true,
+      message: "মুছে ফেলা হয়েছে"
+    })
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    res.status(400).json({
+      success: false,
+      message: err.message
+    })
   }
 })
 

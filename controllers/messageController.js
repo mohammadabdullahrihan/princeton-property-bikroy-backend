@@ -1,47 +1,55 @@
 const Message = require("../models/Message")
+const { asyncHandler } = require('../middleware/errorHandler');
 
-const sendMessage = async (req, res, next) => {
-  try {
-    const { receiverId, propertyId, message } = req.body
+/**
+ * @desc    Send a message
+ * @route   POST /api/messages
+ * @access  Private
+ */
+exports.sendMessage = asyncHandler(async (req, res) => {
+  const { receiverId, propertyId, message } = req.body
 
-    const newMessage = new Message({
-      senderId: req.user.id,
-      receiverId,
-      propertyId,
-      message,
-    })
+  const newMessage = new Message({
+    senderId: req.user.id,
+    receiverId,
+    propertyId,
+    message,
+  })
 
-    await newMessage.save()
+  await newMessage.save()
 
-    await newMessage.populate("senderId", "name email profileImage")
+  await newMessage.populate("senderId", "name email profileImage")
 
-    res.status(201).json({
-      code: "MESSAGE_SENT",
-      message: "বার্তা পাঠানো সফল",
-      data: newMessage,
-    })
-  } catch (err) {
-    next(err)
-  }
-}
+  res.status(201).json({
+    success: true,
+    data: newMessage,
+    message: "বার্তা পাঠানো সফল"
+  })
+});
 
-const getInbox = async (req, res, next) => {
-  try {
-    const { page = 1, limit = 20 } = req.query
-    const pageNum = Math.max(1, Number.parseInt(page))
-    const limitNum = Math.min(100, Math.max(1, Number.parseInt(limit)))
-    const skip = (pageNum - 1) * limitNum
+/**
+ * @desc    Get inbox messages
+ * @route   GET /api/messages/inbox
+ * @access  Private
+ */
+exports.getInbox = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 20 } = req.query
+  const pageNum = Math.max(1, Number.parseInt(page))
+  const limitNum = Math.min(100, Math.max(1, Number.parseInt(limit)))
+  const skip = (pageNum - 1) * limitNum
 
-    const messages = await Message.find({ receiverId: req.user.id })
-      .populate("senderId", "-password -verificationToken -passwordResetToken")
-      .populate("propertyId", "title")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum)
+  const messages = await Message.find({ receiverId: req.user.id })
+    .populate("senderId", "-password -verificationToken -passwordResetToken")
+    .populate("propertyId", "title")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitNum)
 
-    const total = await Message.countDocuments({ receiverId: req.user.id })
+  const total = await Message.countDocuments({ receiverId: req.user.id })
 
-    res.json({
+  res.status(200).json({
+    success: true,
+    data: {
       messages,
       pagination: {
         total,
@@ -49,41 +57,46 @@ const getInbox = async (req, res, next) => {
         limit: limitNum,
         pages: Math.ceil(total / limitNum),
       },
-    })
-  } catch (err) {
-    next(err)
-  }
-}
+    },
+    message: 'Inbox retrieved'
+  })
+});
 
-const getConversation = async (req, res, next) => {
-  try {
-    const { userId, propertyId, page = 1, limit = 50 } = req.query
-    const pageNum = Math.max(1, Number.parseInt(page))
-    const limitNum = Math.min(100, Math.max(1, Number.parseInt(limit)))
-    const skip = (pageNum - 1) * limitNum
+/**
+ * @desc    Get conversation between users
+ * @route   GET /api/messages/conversation
+ * @access  Private
+ */
+exports.getConversation = asyncHandler(async (req, res) => {
+  const { userId, propertyId, page = 1, limit = 50 } = req.query
+  const pageNum = Math.max(1, Number.parseInt(page))
+  const limitNum = Math.min(100, Math.max(1, Number.parseInt(limit)))
+  const skip = (pageNum - 1) * limitNum
 
-    const messages = await Message.find({
-      $or: [
-        { senderId: req.user.id, receiverId: userId },
-        { senderId: userId, receiverId: req.user.id },
-      ],
-      propertyId,
-    })
-      .populate("senderId", "-password -verificationToken -passwordResetToken")
-      .populate("receiverId", "-password -verificationToken -passwordResetToken")
-      .sort({ createdAt: 1 })
-      .skip(skip)
-      .limit(limitNum)
+  const messages = await Message.find({
+    $or: [
+      { senderId: req.user.id, receiverId: userId },
+      { senderId: userId, receiverId: req.user.id },
+    ],
+    propertyId,
+  })
+    .populate("senderId", "-password -verificationToken -passwordResetToken")
+    .populate("receiverId", "-password -verificationToken -passwordResetToken")
+    .sort({ createdAt: 1 })
+    .skip(skip)
+    .limit(limitNum)
 
-    const total = await Message.countDocuments({
-      $or: [
-        { senderId: req.user.id, receiverId: userId },
-        { senderId: userId, receiverId: req.user.id },
-      ],
-      propertyId,
-    })
+  const total = await Message.countDocuments({
+    $or: [
+      { senderId: req.user.id, receiverId: userId },
+      { senderId: userId, receiverId: req.user.id },
+    ],
+    propertyId,
+  })
 
-    res.json({
+  res.status(200).json({
+    success: true,
+    data: {
       messages,
       pagination: {
         total,
@@ -91,30 +104,34 @@ const getConversation = async (req, res, next) => {
         limit: limitNum,
         pages: Math.ceil(total / limitNum),
       },
+    },
+    message: 'Conversation retrieved'
+  })
+});
+
+/**
+ * @desc    Mark message as read
+ * @route   PUT /api/messages/:messageId/read
+ * @access  Private
+ */
+exports.markMessageAsRead = asyncHandler(async (req, res) => {
+  const { messageId } = req.params
+  const message = await Message.findByIdAndUpdate(messageId, { read: true }, { new: true })
+
+  if (!message) {
+    return res.status(404).json({
+      success: false,
+      data: null,
+      message: "বার্তা পাওয়া যায়নি"
     })
-  } catch (err) {
-    next(err)
   }
-}
 
-const markMessageAsRead = async (req, res, next) => {
-  try {
-    const { messageId } = req.params
-    const message = await Message.findByIdAndUpdate(messageId, { read: true }, { new: true })
+  res.status(200).json({
+    success: true,
+    data: message,
+    message: "বার্তা পড়া চিহ্নিত"
+  })
+});
 
-    if (!message) {
-      return res.status(404).json({ code: "NOT_FOUND", message: "বার্তা পাওয়া যায়নি" })
-    }
+module.exports = exports;
 
-    res.json({ code: "MARKED_READ", message: "বার্তা পড়া চিহ্নিত", data: message })
-  } catch (err) {
-    next(err)
-  }
-}
-
-module.exports = {
-  sendMessage,
-  getInbox,
-  getConversation,
-  markMessageAsRead,
-}

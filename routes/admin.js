@@ -1,5 +1,5 @@
 const express = require("express")
-const { authMiddleware, adminMiddleware } = require("../middleware/auth")
+const { authenticate, authorize } = require("../middleware/auth")
 const {
   getDashboardStats,
   getAllUsers,
@@ -10,10 +10,10 @@ const {
 
 const router = express.Router()
 
-router.get("/stats", authMiddleware, adminMiddleware, getDashboardStats)
-router.get("/users", authMiddleware, adminMiddleware, getAllUsers)
-router.get("/listings", authMiddleware, adminMiddleware, getAllListings)
-router.put("/listings/:id/approve", authMiddleware, adminMiddleware, approveProperty)
-router.put("/listings/:id/reject", authMiddleware, adminMiddleware, rejectProperty)
+router.get("/stats", authenticate, authorize('admin'), getDashboardStats)
+router.get("/users", authenticate, authorize('admin'), getAllUsers)
+router.get("/listings", authenticate, authorize('admin'), getAllListings)
+router.put("/listings/:id/approve", authenticate, authorize('admin'), approveProperty)
+router.put("/listings/:id/reject", authenticate, authorize('admin'), rejectProperty)
 
 module.exports = router

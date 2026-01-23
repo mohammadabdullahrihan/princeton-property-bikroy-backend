@@ -1,43 +1,87 @@
+/**
+ * Global error handling middleware
+ * Catches all errors and returns standardized JSON response
+ */
 const errorHandler = (err, req, res, next) => {
-  console.error("[ERROR]", err)
-
-  const status = err.status || err.statusCode || 500
-  const code = err.code || "INTERNAL_ERROR"
-
-  let message = err.message || "সার্ভার ত্রুটি"
-
-  // Mongoose validation errors
-  if (err.name === "ValidationError") {
-    const messages = Object.values(err.errors).map((e) => e.message)
-    return res.status(400).json({
-      code: "VALIDATION_ERROR",
-      message: messages.join(", "),
-    })
+  let error = { ...err };
+  error.message = err.message;
+  
+  // Log error for debugging
+  console.error('Error:', err);
+  
+  // Mongoose bad ObjectId
+  if (err.name === 'CastError') {
+    const message = 'Resource not found';
+    error = { message, statusCode: 404 };
   }
-
-  // Mongoose cast errors
-  if (err.name === "CastError") {
-    return res.status(400).json({
-      code: "CAST_ERROR",
-      message: "Invalid ID format",
-    })
-  }
-
-  // Mongoose duplicate key error
+  
+  // Mongoose duplicate key
   if (err.code === 11000) {
-    const field = Object.keys(err.keyPattern)[0]
-    return res.status(400).json({
-      code: "DUPLICATE_FIELD",
-      message: `${field} ইতিমধ্যে ব্যবহৃত`,
-    })
+    const field = Object.keys(err.keyValue)[0];
+    const message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    error = { message, statusCode: 400 };
   }
-
-  // Don't expose internal error details in production
-  if (process.env.NODE_ENV === "production") {
-    message = status === 500 ? "সার্ভার ত্রুটি" : message
+  
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    const message = Object.values(err.errors).map(val => val.message).join(', ');
+    error = { message, statusCode: 400 };
   }
+  
+  // JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    const message = 'Invalid token';
+    error = { message, statusCode: 401 };
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    const message = 'Token expired';
+    error = { message, statusCode: 401 };
+  }
+  
+  // Multer file upload errors
+  if (err.name === 'MulterError') {
+    let message = 'File upload error';
+    
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'File size too large';
+    } else if (err.code === 'LIMIT_FILE_COUNT') {
+      message = 'Too many files';
+    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      message = 'Unexpected file field';
+    }
+    
+    error = { message, statusCode: 400 };
+  }
+  
+  res.status(error.statusCode || 500).json({
+    success: false,
+    data: null,
+    message: error.message || 'Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+};
 
-  res.status(status).json({ code, message })
-}
+/**
+ * Handle 404 - Not Found
+ */
+const notFound = (req, res, next) => {
+  res.status(404).json({
+    success: false,
+    data: null,
+    message: `Route ${req.originalUrl} not found`
+  });
+};
 
-module.exports = { errorHandler }
+/**
+ * Async handler wrapper to catch errors in async route handlers
+ */
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+module.exports = {
+  errorHandler,
+  notFound,
+  asyncHandler
+};
