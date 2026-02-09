@@ -28,7 +28,7 @@ const registerSchema = Joi.object({
   phone: Joi.string().min(10).max(15).required().messages({
     "string.empty": "ফোন নম্বর প্রয়োজন",
   }),
-  role: Joi.string().valid("user", "agent", "admin").default("user"),
+  role: Joi.string().valid("viewer", "admin").default("viewer"),
 })
 
 const loginSchema = Joi.object({

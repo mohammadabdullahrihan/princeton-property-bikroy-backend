@@ -171,5 +171,31 @@ exports.rejectProperty = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Toggle property verification status
+ * @route   PUT /api/admin/listings/:id/verify
+ * @access  Private/Admin
+ */
+exports.toggleVerify = asyncHandler(async (req, res) => {
+  const property = await Property.findById(req.params.id);
+
+  if (!property) {
+    return res.status(404).json({
+      success: false,
+      data: null,
+      message: "সম্পত্তি পাওয়া যায়নি"
+    });
+  }
+
+  property.verified = !property.verified;
+  await property.save();
+
+  res.status(200).json({
+    success: true,
+    data: property,
+    message: property.verified ? "Verified successfully" : "Unverified successfully"
+  });
+});
+
 module.exports = exports;
 

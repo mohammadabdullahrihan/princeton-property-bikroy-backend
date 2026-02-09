@@ -247,10 +247,10 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
       });
       console.log('📧 Email sent to:', user.email);
     } else {
-      console.log('⚠️ SMTP not configured. Mocking email send.');
-      console.log(`📧 To: ${user.email}`);
-      console.log(`🔑 Reset Token: ${resetToken}`);
-      console.log(`🔗 Reset URL: ${resetUrl}`);
+      console.log('⚠️ SMTP not configured. Mocking email send (check logs for dev only).');
+      // console.log(`📧 To: ${user.email}`); // Removed for production security
+      // console.log(`🔑 Reset Token: ${resetToken}`); // Removed for production security
+      // console.log(`🔗 Reset URL: ${resetUrl}`); // Removed for production security
     }
 
     res.status(200).json({
