@@ -479,9 +479,9 @@ const seedDatabase = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    
+
     console.log('✅ Connected to MongoDB');
-    
+
     // Clear existing data
     console.log('\n🗑️  Clearing existing data...');
     await User.deleteMany({});
@@ -489,12 +489,12 @@ const seedDatabase = async () => {
 
     await Location.deleteMany({});
     console.log('✅ Existing data cleared');
-    
+
     // Seed locations
     console.log('\n📍 Seeding locations...');
     await Location.insertMany(bangladeshLocations);
     console.log(`✅ Seeded ${bangladeshLocations.length} divisions with districts and areas`);
-    
+
     // Seed users
     console.log('\n👥 Seeding users...');
     const createdUsers = [];
@@ -505,24 +505,24 @@ const seedDatabase = async () => {
     }
     const userIds = createdUsers.map(user => user._id);
     console.log(`✅ Seeded ${createdUsers.length} users`);
-    
+
     // Seed properties
     console.log('\n🏠 Seeding properties...');
     const properties = getProperties(userIds);
     const createdProperties = await Property.insertMany(properties);
     const propertyIds = createdProperties.map(property => property._id);
     console.log(`✅ Seeded ${createdProperties.length} properties`);
-    
 
-    
 
-    
+
+
+
     console.log('\n✨ Database seeding completed successfully!\n');
     console.log('📝 Sample credentials:');
     console.log('   Admin: admin@bikroy.com / admin123');
     console.log('   Seller: karim@example.com / password123');
     console.log('   Buyer: ayesha@example.com / password123\n');
-    
+
     process.exit(0);
   } catch (error) {
     console.error('❌ Error seeding database:', error);
