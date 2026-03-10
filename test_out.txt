@@ -1,0 +1,180 @@
+
+> princeton-property-bikroy-backend@1.0.0 test
+> cross-env NODE_ENV=test jest --testTimeout=30000 --runInBand tests/properties.test.js
+
+  console.log
+    📡 Route Loaded: /api/admin
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/auth
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/buildingproducts
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/locations
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/messages
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/properties
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/savedlistings
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/upload
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    📡 Route Loaded: /api/users
+
+      at log (server.js:93:13)
+          at Array.forEach (<anonymous>)
+
+(node:45636) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:45636) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+  console.log
+    CREATE PROPERTY RESPONSE: {
+      code: 'VALIDATION_ERROR',
+      message: '"type" must be one of [flat, house, plot, commercial, office, shop, building]'
+    }
+
+      at Object.log (tests/properties.test.js:60:15)
+
+FAIL tests/properties.test.js (17.08 s)
+  Property Endpoints
+    POST /api/properties
+      ✕ should create property if admin (3214 ms)
+      ✕ should deny create if viewer (1844 ms)
+    GET /api/properties
+      ✕ should get all properties (2089 ms)
+    PUT /api/properties/:id
+      ✕ should update property if admin (1865 ms)
+      ✕ should deny update if viewer (1999 ms)
+    DELETE /api/properties/:id
+      ✕ should delete property if admin (2068 ms)
+
+  ● Property Endpoints › POST /api/properties › should create property if admin
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 400
+
+      60 |       console.log("CREATE PROPERTY RESPONSE:", res.body);
+      61 |
+    > 62 |       expect(res.statusCode).toBe(201);
+         |                              ^
+      63 |       expect(res.body.data.title).toBe(sampleProperty.title);
+      64 |       expect(res.body.data.userId).toBeDefined();
+      65 |     });
+
+      at Object.toBe (tests/properties.test.js:62:30)
+
+  ● Property Endpoints › POST /api/properties › should deny create if viewer
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 400
+
+      71 |         .send(sampleProperty);
+      72 |
+    > 73 |       expect(res.statusCode).toBe(403);
+         |                              ^
+      74 |     });
+      75 |   });
+      76 |
+
+      at Object.toBe (tests/properties.test.js:73:30)
+
+  ● Property Endpoints › GET /api/properties › should get all properties
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      86 |       const res = await request(app).get("/api/properties");
+      87 |       expect(res.statusCode).toBe(200);
+    > 88 |       expect(res.body.data.pagination.total).toBeGreaterThan(0);
+         |                                              ^
+      89 |       expect(res.body.data.properties[0].title).toBe(sampleProperty.title);
+      90 |     });
+      91 |   });
+
+      at Object.toBeGreaterThan (tests/properties.test.js:88:46)
+
+  ● Property Endpoints › PUT /api/properties/:id › should update property if admin
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+       98 |         .set("Authorization", `Bearer ${adminToken}`)
+       99 |         .send(sampleProperty);
+    > 100 |       propId = res.body.data._id;
+          |                              ^
+      101 |     });
+      102 |
+      103 |     it("should update property if admin", async () => {
+
+      at Object._id (tests/properties.test.js:100:30)
+
+  ● Property Endpoints › PUT /api/properties/:id › should deny update if viewer
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+       98 |         .set("Authorization", `Bearer ${adminToken}`)
+       99 |         .send(sampleProperty);
+    > 100 |       propId = res.body.data._id;
+          |                              ^
+      101 |     });
+      102 |
+      103 |     it("should update property if admin", async () => {
+
+      at Object._id (tests/properties.test.js:100:30)
+
+  ● Property Endpoints › DELETE /api/properties/:id › should delete property if admin
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+      128 |         .set("Authorization", `Bearer ${adminToken}`)
+      129 |         .send(sampleProperty);
+    > 130 |       propId = res.body.data._id;
+          |                              ^
+      131 |     });
+      132 |
+      133 |     it("should delete property if admin", async () => {
+
+      at Object._id (tests/properties.test.js:130:30)
+
+Test Suites: 1 failed, 1 total
+Tests:       6 failed, 6 total
+Snapshots:   0 total
+Time:        17.202 s, estimated 19 s
+Ran all test suites matching tests/properties.test.js.

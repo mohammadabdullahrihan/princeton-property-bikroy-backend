@@ -1,15 +1,15 @@
-const express = require("express")
-const Location = require("../models/Location")
+const express = require("express");
+const Location = require("../models/Location");
 
-const router = express.Router()
+const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const locations = await Location.find()
-    res.json(locations)
+    const locations = await Location.find();
+    res.status(200).json({ success: true, data: locations });
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    res.status(400).json({ success: false, message: err.message });
   }
-})
+});
 
-module.exports = router
+module.exports = router;
