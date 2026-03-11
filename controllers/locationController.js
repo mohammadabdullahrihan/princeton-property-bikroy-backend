@@ -70,6 +70,7 @@ exports.searchAreas = asyncHandler(async (req, res) => {
   
   res.status(200).json({
     success: true,
+    results, // frontend reads data.results
     data: results,
     message: 'Search results retrieved successfully'
   });
