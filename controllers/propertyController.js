@@ -31,12 +31,15 @@ class PropertyController extends BaseController {
       featured,
       verified,
       search,
-      sort = "-createdAt",
+      sort,
       page = 1,
       limit = 12,
     } = req.query;
 
     const query = { status: "active" };
+
+    // Default sort if empty or null
+    const sortField = sort && sort.trim() !== "" ? sort : "-createdAt";
 
     if (category) query.category = category;
     if (propertyType) query.propertyType = propertyType;
@@ -70,7 +73,7 @@ class PropertyController extends BaseController {
 
     const properties = await Property.find(query)
       .populate("userId", "name email phone rating reviewCount verified")
-      .sort(sort)
+      .sort(sortField)
       .skip(skip)
       .limit(parseInt(limit));
 

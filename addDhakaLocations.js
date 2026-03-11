@@ -34,10 +34,16 @@ async function updateLocations() {
         }
         
         // Merge and deduplicate
-        const currentAreas = new Set(dhakaDistrict.areas);
-        dhakaAreas.forEach(area => currentAreas.add(area));
+        const existingAreasMap = new Map();
+        dhakaDistrict.areas.forEach(a => existingAreasMap.set(a.name, a));
+
+        dhakaAreas.forEach(areaName => {
+            if (!existingAreasMap.has(areaName)) {
+                existingAreasMap.set(areaName, { name: areaName, name_bn: areaName }); // Fallback BN to EN
+            }
+        });
         
-        dhakaDistrict.areas = Array.from(currentAreas).sort();
+        dhakaDistrict.areas = Array.from(existingAreasMap.values()).sort((a, b) => a.name.localeCompare(b.name));
         
         await dhakaLocation.save();
         console.log('Successfully updated Dhaka locations.');

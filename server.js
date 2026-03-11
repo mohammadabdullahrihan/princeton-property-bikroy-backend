@@ -80,14 +80,15 @@ fs.readdirSync(routesPath).forEach((file) => {
   if (file.endsWith(".js")) {
     const route = require(path.join(routesPath, file));
     // Determine the route prefix based on filename
-    // e.g., authRoutes.js -> /api/auth, properties.js -> /api/properties
+    // Convert camelCase to kebab-case (e.g., savedListings.js -> saved-listings)
     let routeName = file
       .replace("Routes.js", "")
       .replace(".js", "")
+      .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
       .toLowerCase();
 
-    // Custom mapping for consistency if needed
-    if (routeName === "auth") routeName = "auth";
+    // Custom mapping for consistency
+    if (routeName === "super-admin") routeName = "superadmin";
 
     app.use(`/api/${routeName}`, route);
     console.log(`📡 Route Loaded: /api/${routeName}`);
