@@ -62,8 +62,8 @@ class PropertyController extends BaseController {
     if (bedrooms) query.bedrooms = { $gte: parseInt(bedrooms) };
     if (bathrooms) query.bathrooms = { $gte: parseInt(bathrooms) };
 
-    if (featured !== undefined) query.featured = featured === "true";
-    if (verified !== undefined) query.verified = verified === "true";
+    if (featured === "true") query.featured = true;
+    if (verified === "true") query.verified = true;
 
     if (search) {
       query.$text = { $search: search };
@@ -131,18 +131,24 @@ class PropertyController extends BaseController {
 
     // Handle images from multer
     if (req.files && req.files.length > 0) {
-      propertyData.images = req.files.map(file => ({
-        url: file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`,
-        caption: file.originalname
+      propertyData.images = req.files.map((file) => ({
+        url: file.path.startsWith("http")
+          ? file.path
+          : `/uploads/${file.filename}`,
+        caption: file.originalname,
       }));
     }
 
     // Parse JSON fields if they are strings (sent via FormData)
-    if (typeof propertyData.location === 'string') {
-      try { propertyData.location = JSON.parse(propertyData.location); } catch (e) {}
+    if (typeof propertyData.location === "string") {
+      try {
+        propertyData.location = JSON.parse(propertyData.location);
+      } catch (e) {}
     }
-    if (typeof propertyData.amenities === 'string') {
-      try { propertyData.amenities = JSON.parse(propertyData.amenities); } catch (e) {}
+    if (typeof propertyData.amenities === "string") {
+      try {
+        propertyData.amenities = JSON.parse(propertyData.amenities);
+      } catch (e) {}
     }
 
     if (!propertyData.contactInfo) {
@@ -174,32 +180,41 @@ class PropertyController extends BaseController {
 
     // Handle new images if any
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => ({
-        url: file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`,
-        caption: file.originalname
+      const newImages = req.files.map((file) => ({
+        url: file.path.startsWith("http")
+          ? file.path
+          : `/uploads/${file.filename}`,
+        caption: file.originalname,
       }));
-      
+
       // If the frontend sends existing images, we might need to merge or replace.
       // For now, let's assume if new files are uploaded, they are added.
       // However, usually we should handle the list properly.
       // If req.body.images exists as a string (JSON), parse it first.
       let existingImages = [];
       if (updateData.images) {
-         try {
-           existingImages = typeof updateData.images === 'string' ? JSON.parse(updateData.images) : updateData.images;
-         } catch (e) {}
+        try {
+          existingImages =
+            typeof updateData.images === "string"
+              ? JSON.parse(updateData.images)
+              : updateData.images;
+        } catch (e) {}
       } else {
-         existingImages = property.images;
+        existingImages = property.images;
       }
       updateData.images = [...existingImages, ...newImages];
     }
 
     // Parse JSON fields
-    if (typeof updateData.location === 'string') {
-      try { updateData.location = JSON.parse(updateData.location); } catch (e) {}
+    if (typeof updateData.location === "string") {
+      try {
+        updateData.location = JSON.parse(updateData.location);
+      } catch (e) {}
     }
-    if (typeof updateData.amenities === 'string') {
-      try { updateData.amenities = JSON.parse(updateData.amenities); } catch (e) {}
+    if (typeof updateData.amenities === "string") {
+      try {
+        updateData.amenities = JSON.parse(updateData.amenities);
+      } catch (e) {}
     }
 
     property = await Property.findByIdAndUpdate(req.params.id, updateData, {
