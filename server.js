@@ -117,26 +117,51 @@ app.use(errorHandler);
  */
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+// -----------------------------------------------------------------------
+// Serverless-safe MongoDB connection with caching.
+// On Vercel, each cold-start imports this module fresh, but subsequent
+// invocations reuse the same Node process, so we cache the connection
+// promise to avoid opening multiple connections.
+// -----------------------------------------------------------------------
+let cachedConnection = null;
 
-    app.listen(PORT, () => {
-      console.log(
-        `\n🚀 Server running in ${process.env.NODE_ENV || "development"} mode`,
-      );
-      console.log(`🌐 URL: http://localhost:${PORT}`);
-      console.log(`\n✨ System is Dynamic & Ready!\n`);
-    });
-  } catch (error) {
-    console.error(`❌ Connection Error: ${error.message}`);
-    process.exit(1);
+const connectDB = async () => {
+  if (cachedConnection) return cachedConnection;
+
+  // If mongoose already has an open connection (e.g. warm Lambda),
+  // reuse it instead of calling connect() again.
+  if (mongoose.connection.readyState >= 1) {
+    cachedConnection = mongoose.connection;
+    return cachedConnection;
   }
+
+  const conn = await mongoose.connect(process.env.MONGO_URI, {
+    // Recommended settings for serverless environments
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+  });
+  cachedConnection = conn.connection;
+  console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  return cachedConnection;
 };
 
+// Connect immediately so MongoDB is ready before the first request hits
+// (works for both traditional servers AND Vercel serverless functions).
+connectDB().catch((err) => {
+  console.error(`❌ MongoDB Connection Error: ${err.message}`);
+  // Don't call process.exit in serverless — it would crash the whole runtime.
+  if (require.main === module) process.exit(1);
+});
+
+// Traditional server start (local dev / non-serverless hosting)
 if (require.main === module) {
-  startServer();
+  app.listen(PORT, () => {
+    console.log(
+      `\n🚀 Server running in ${process.env.NODE_ENV || "development"} mode`,
+    );
+    console.log(`🌐 URL: http://localhost:${PORT}`);
+    console.log(`\n✨ System is Dynamic & Ready!\n`);
+  });
 }
 
 module.exports = app;
