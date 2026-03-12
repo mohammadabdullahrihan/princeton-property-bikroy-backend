@@ -18,18 +18,10 @@ const propertySchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: {
-      values: ['buy', 'rent'],
-      message: 'Category must be either buy or rent'
-    }
   },
-  propertyType: {
+  type: {
     type: String,
     required: [true, 'Property type is required'],
-    enum: {
-      values: ['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse'],
-      message: 'Invalid property type'
-    }
   },
   price: {
     type: Number,
@@ -38,8 +30,7 @@ const propertySchema = new mongoose.Schema({
   },
   size: {
     type: Number,
-    required: [true, 'Size is required'],
-    min: [1, 'Size must be at least 1 sqft']
+    min: [0, 'Size cannot be negative']
   },
   sizeUnit: {
     type: String,
