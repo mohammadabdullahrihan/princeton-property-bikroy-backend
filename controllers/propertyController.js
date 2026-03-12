@@ -132,7 +132,7 @@ class PropertyController extends BaseController {
     // Handle images from multer
     if (req.files && req.files.length > 0) {
       propertyData.images = req.files.map(file => ({
-        url: `/uploads/${file.filename}`,
+        url: file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`,
         caption: file.originalname
       }));
     }
@@ -175,7 +175,7 @@ class PropertyController extends BaseController {
     // Handle new images if any
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => ({
-        url: `/uploads/${file.filename}`,
+        url: file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`,
         caption: file.originalname
       }));
       
