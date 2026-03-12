@@ -126,18 +126,34 @@ class PropertyController extends BaseController {
    * @desc    Create new property
    */
   createProperty = asyncHandler(async (req, res) => {
-    req.body.userId = req.user._id;
+    const propertyData = { ...req.body };
+    propertyData.userId = req.user._id;
 
-    if (!req.body.contactInfo) {
-      req.body.contactInfo = {
+    // Handle images from multer
+    if (req.files && req.files.length > 0) {
+      propertyData.images = req.files.map(file => ({
+        url: `/uploads/${file.filename}`,
+        caption: file.originalname
+      }));
+    }
+
+    // Parse JSON fields if they are strings (sent via FormData)
+    if (typeof propertyData.location === 'string') {
+      try { propertyData.location = JSON.parse(propertyData.location); } catch (e) {}
+    }
+    if (typeof propertyData.amenities === 'string') {
+      try { propertyData.amenities = JSON.parse(propertyData.amenities); } catch (e) {}
+    }
+
+    if (!propertyData.contactInfo) {
+      propertyData.contactInfo = {
         name: req.user.name,
         email: req.user.email,
         phone: req.user.phone,
       };
     }
 
-    const property = await Property.create(req.body);
-
+    const property = await Property.create(propertyData);
     res.status(201).json({ success: true, data: property });
   });
 
@@ -153,9 +169,40 @@ class PropertyController extends BaseController {
         .json({ success: false, message: "Property not found" });
     }
 
-    delete req.body.userId;
+    const updateData = { ...req.body };
+    delete updateData.userId;
 
-    property = await Property.findByIdAndUpdate(req.params.id, req.body, {
+    // Handle new images if any
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => ({
+        url: `/uploads/${file.filename}`,
+        caption: file.originalname
+      }));
+      
+      // If the frontend sends existing images, we might need to merge or replace.
+      // For now, let's assume if new files are uploaded, they are added.
+      // However, usually we should handle the list properly.
+      // If req.body.images exists as a string (JSON), parse it first.
+      let existingImages = [];
+      if (updateData.images) {
+         try {
+           existingImages = typeof updateData.images === 'string' ? JSON.parse(updateData.images) : updateData.images;
+         } catch (e) {}
+      } else {
+         existingImages = property.images;
+      }
+      updateData.images = [...existingImages, ...newImages];
+    }
+
+    // Parse JSON fields
+    if (typeof updateData.location === 'string') {
+      try { updateData.location = JSON.parse(updateData.location); } catch (e) {}
+    }
+    if (typeof updateData.amenities === 'string') {
+      try { updateData.amenities = JSON.parse(updateData.amenities); } catch (e) {}
+    }
+
+    property = await Property.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

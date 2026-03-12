@@ -54,18 +54,8 @@ const passwordResetRequestSchema = Joi.object({
 const propertySchema = Joi.object({
   title: Joi.string().min(5).max(200).required(),
   description: Joi.string().min(10).max(5000).required(),
-  category: Joi.string().valid("buy", "rent", "project").required(),
-  propertyType: Joi.string()
-    .valid(
-      "apartment",
-      "house",
-      "land",
-      "commercial",
-      "office",
-      "shop",
-      "warehouse",
-    )
-    .required(),
+  category: Joi.string().required(),
+  propertyType: Joi.string().required(),
   location: Joi.object({
     division: Joi.string().required(),
     district: Joi.string().required(),
@@ -73,7 +63,7 @@ const propertySchema = Joi.object({
   }).required(),
   price: Joi.number().positive().required(),
   bedrooms: Joi.number().min(0),
-  size: Joi.number().positive(),
+  size: Joi.number().min(0),
   images: Joi.array().items(Joi.string()),
 });
 
