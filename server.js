@@ -34,6 +34,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://princetondevelopmentltdproperties.netlify.app",
+  "https://properties.princetondevelopmentltd.com",
 ].filter(Boolean);
 
 const corsOptions = {
