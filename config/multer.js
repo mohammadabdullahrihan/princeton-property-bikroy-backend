@@ -21,9 +21,18 @@ const localStorage = multer.diskStorage({
 // Cloudinary Storage Setup (Ready to use)
 let storage = localStorage;
 
+// To enable Google Cloud Storage, set IMAGE_STORAGE_TYPE=google in .env
+if (process.env.IMAGE_STORAGE_TYPE === 'google') {
+  try {
+    storage = require('./googleCloud');
+    console.log("☁️  Using Google Cloud Storage for image storage");
+  } catch (err) {
+    console.error("❌ Failed to load Google Cloud storage, falling back to local:", err.message);
+  }
+}
+
 // To enable Cloudinary, set IMAGE_STORAGE_TYPE=cloudinary in .env 
-// and provide CLOUDINARY credentials
-if (process.env.IMAGE_STORAGE_TYPE === 'cloudinary') {
+else if (process.env.IMAGE_STORAGE_TYPE === 'cloudinary') {
   try {
     const { storage: cloudinaryStorage } = require('./cloudinary');
     storage = cloudinaryStorage;
