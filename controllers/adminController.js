@@ -186,6 +186,17 @@ class AdminController extends BaseController {
 
     res.status(200).json({ success: true, data: property });
   });
+
+  /**
+   * @desc    Delete a property (Admin)
+   */
+  deleteProperty = asyncHandler(async (req, res) => {
+    const property = await Property.findByIdAndDelete(req.params.id);
+    if (!property) {
+      return res.status(404).json({ success: false, message: "Property not found" });
+    }
+    res.status(200).json({ success: true, message: "Property deleted successfully" });
+  });
 }
 
 module.exports = new AdminController();

@@ -7,6 +7,7 @@ const {
   approveProperty,
   rejectProperty,
   toggleVerify,
+  deleteProperty,
 } = require("../controllers/adminController")
 
 const router = express.Router()
@@ -17,5 +18,6 @@ router.get("/listings", authenticate, authorize('admin'), getAllListings)
 router.put("/listings/:id/approve", authenticate, authorize('admin'), approveProperty)
 router.put("/listings/:id/reject", authenticate, authorize('admin'), rejectProperty)
 router.put("/listings/:id/verify", authenticate, authorize('admin'), toggleVerify)
+router.delete("/listings/:id", authenticate, authorize('admin'), deleteProperty)
 
 module.exports = router
