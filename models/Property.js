@@ -24,9 +24,8 @@ const propertySchema = new mongoose.Schema({
     required: [true, 'Property type is required'],
   },
   price: {
-    type: Number,
+    type: String,
     required: [true, 'Price is required'],
-    min: [0, 'Price cannot be negative']
   },
   size: {
     type: Number,

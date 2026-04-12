@@ -52,19 +52,22 @@ const passwordResetRequestSchema = Joi.object({
 });
 
 const propertySchema = Joi.object({
-  title: Joi.string().min(5).max(200).required(),
-  description: Joi.string().min(10).max(5000).required(),
+  title: Joi.string().min(10).max(200).required(),
+  description: Joi.string().min(50).max(5000).required(),
   category: Joi.string().required(),
   propertyType: Joi.string().required(),
   location: Joi.object({
     division: Joi.string().required(),
     district: Joi.string().required(),
     area: Joi.string().required(),
+    address: Joi.string().allow('', null),
   }).required(),
-  price: Joi.number().positive().required(),
-  bedrooms: Joi.number().min(0),
-  size: Joi.number().min(0),
-  images: Joi.array().items(Joi.string()),
+  price: Joi.string().required(),
+  bedrooms: Joi.number().min(0).allow('', null),
+  bathrooms: Joi.number().min(0).allow('', null),
+  size: Joi.number().min(0).allow('', null),
+  amenities: Joi.array().items(Joi.string()).allow(null),
+  images: Joi.array().items(Joi.any()).allow(null),
 });
 
 const validateProperty = (req, res, next) => {
@@ -79,8 +82,10 @@ const validateProperty = (req, res, next) => {
           ? JSON.parse(req.body.location || "{}")
           : req.body.location,
       price: req.body.price,
-      bedrooms: req.body.bedrooms,
-      size: req.body.size,
+      bedrooms: req.body.bedrooms ? Number(req.body.bedrooms) : undefined,
+      bathrooms: req.body.bathrooms ? Number(req.body.bathrooms) : undefined,
+      size: req.body.size ? Number(req.body.size) : undefined,
+      amenities: typeof req.body.amenities === 'string' ? JSON.parse(req.body.amenities || '[]') : req.body.amenities,
     },
     { abortEarly: false, stripUnknown: true },
   );
