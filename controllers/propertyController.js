@@ -353,6 +353,55 @@ class PropertyController extends BaseController {
 
     res.status(200).json({ success: true, data: similarProperties });
   });
+
+  /**
+   * @desc    Promote property (Deduct tokens)
+   * @route   POST /api/properties/promote/:id
+   */
+  promoteProperty = asyncHandler(async (req, res) => {
+    const propertyId = req.params.id;
+    const userId = req.user._id;
+    const TOKEN_COST = 1;
+
+    // Use findOneAndUpdate for atomic token deduction
+    const user = await require("../models/User").findOneAndUpdate(
+      { _id: userId, tokens: { $gte: TOKEN_COST } },
+      { $inc: { tokens: -TOKEN_COST } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient tokens or user not found"
+      });
+    }
+
+    // Increment promotion count on property
+    const property = await Property.findByIdAndUpdate(
+      propertyId,
+      { $inc: { promotionCount: 1 }, featured: true }, // Also feature it when promoted
+      { new: true }
+    );
+
+    if (!property) {
+      // Rollback tokens if property not found (though unlikely if adId is valid)
+      await require("../models/User").findByIdAndUpdate(userId, { $inc: { tokens: TOKEN_COST } });
+      return res.status(404).json({
+        success: false,
+        message: "Property not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        tokens: user.tokens,
+        promotionCount: property.promotionCount
+      },
+      message: "Property promoted successfully"
+    });
+  });
 }
 
 module.exports = new PropertyController();

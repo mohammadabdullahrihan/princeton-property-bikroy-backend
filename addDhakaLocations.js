@@ -5,16 +5,16 @@ const Location = require('./models/Location');
 dotenv.config();
 
 const dhakaAreas = [
-  'Adabor', 'Aftab Nagar', 'Agargaon', 'Ashkona', 'Azimpur', 'Badda', 'Banani', 
+  'Adabor', 'Aftab Nagar', 'Agargaon', 'Al-Amin Road', 'Ashkona', 'Azimpur', 'Badda', 'Banani', 
   'Banasree', 'Banglamotor', 'Baridhara', 'Basabo', 'Bashundhara R/A', 'Cantonment', 
-  'Chawkbazar', 'Dakshinkhan', 'Demra', 'Dhanmondi', 'Elephant Road', 'Eskaton', 
-  'Farmgate', 'Gabtoli', 'Gandaria', 'Gulshan', 'Hazaribagh', 'Jatrabari', 'Jigatola', 
-  'Kafrul', 'Kakrail', 'Kalabagan', 'Kalyanpur', 'Kamrangirchar', 'Khilgaon', 'Khilkhet', 
-  'Kotwali', 'Kuril', 'Lalbagh', 'Lalmatia', 'Malibagh', 'Mirpur', 'Mohakhali', 
+  'Central Road', 'Chawkbazar', 'Dakshinkhan', 'Demra', 'Dhanmondi', 'Elephant Road', 'Eskaton', 
+  'Farmgate', 'Gabtoli', 'Gandaria', 'Green Road', 'Gulshan', 'Hazaribagh', 'Jatrabari', 'Jigatola', 
+  'Kafrul', 'Kakrail', 'Kalabagan', 'Kalabagan Main Road', 'Kalyanpur', 'Kamrangirchar', 'Khilgaon', 'Khilkhet', 
+  'Kotwali', 'Kuril', 'Lake Circus Road', 'Lalbagh', 'Lalmatia', 'Malibagh', 'Mirpur', 'Mohakhali', 
   'Mohammadpur', 'Motijheel', 'Mugdha', 'Nawabganj', 'New Market', 'Niketan', 'Nikunja', 
-  'Pallabi', 'Paltan', 'Panthapath', 'Rampura', 'Sabujbagh', 'Savar', 'Science Lab', 
-  'Shahbagh', 'Shajahanpur', 'Shantinagar', 'Shikdar Real Estate', 'Shyamoli', 'Sutrapur', 
-  'Tejgaon', 'Tongi', 'Uttara', 'Uttarkhan', 'Wari'
+  'North Road', 'Pallabi', 'Paltan', 'Panthapath', 'Rampura', 'Sabujbagh', 'Savar', 'Science Lab', 
+  'Shahbagh', 'Shajahanpur', 'Shantinagar', 'Shikdar Real Estate', 'Shukrabad Road', 'Shyamoli', 
+  'Sobhanbag Road', 'South Road', 'Sutrapur', 'Tejgaon', 'Tongi', 'Uttara', 'Uttarkhan', 'Wari'
 ];
 
 async function updateLocations() {
